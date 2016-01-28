@@ -61,7 +61,7 @@ function ENT:Input()
 	local URLEntry = vgui.Create( "DTextEntry", Frame )
 	URLEntry:SetPos( 25, 50 )
 	URLEntry:SetSize( 250, 35 )
-	URLEntry:SetText( "URL" )
+	URLEntry:SetTextPlaceholder( "URL" )
 	
 	local URLButton = vgui.Create( "DButton", Frame ) -- URL Button
 	URLButton:SetText( "Play/Stop" )
@@ -82,9 +82,6 @@ function ENT:Input()
 	end
 	
 	URLButton.DoClick = function()
-		if IsValid(self.stream) then 
-			self.stream:Stop()
-		end
 		local EnteredURL = URLEntry:GetValue()
 		net.Start("SendURL")
 				net.WriteString(EnteredURL)
@@ -149,17 +146,16 @@ net.Receive("Radio-Use", function()
 end)
 
 net.Receive("BroadcastURL", function()
+		if IsValid(self.stream) then 
+			self.stream:Stop()
+		end
 	local BroadcastedURL=net.ReadString()
 	local BroadcastedEnt=net.ReadEntity()
-	print("Received from server "..BroadcastedURL)
-	print(ETV)
 	if ETV then
 		sound.PlayURL( BroadcastedURL, "mono", function(stream)
-			print("Stream")
 			BroadcastedEnt.stream=stream
 		end)
 	end
-		 print (BroadcastedEnt)
 end)	
 	
 function ENT:FFT()
@@ -167,7 +163,6 @@ function ENT:FFT()
 		if self.stream:GetState()==GMOD_CHANNEL_PLAYING
 		then
 			self.stream:FFT(self.tbl,FFT_512)--Get FFT Data, 512 = 256 Samples 
-			PrintTable(self.tbl)
 		end
 end
 

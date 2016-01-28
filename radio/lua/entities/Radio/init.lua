@@ -26,7 +26,6 @@ end
 
 
 function ENT:Use( activator, caller )
-	print("Confirm "..activator:Nick())
 	net.Start("Radio-Use")
 		net.WriteEntity(self)
 	net.Send(activator)
@@ -35,11 +34,9 @@ end
 net.Receive("SendURL", function( len, ply)
 	local URL=net.ReadString()
 	local ent=net.ReadEntity()
-	print("Received from client "..URL)
 		net.Start("BroadcastURL")
 			net.WriteString(URL)
 			net.WriteEntity(ent)
-			print("Sent "..URL)
 		net.Broadcast()
 end)
 
