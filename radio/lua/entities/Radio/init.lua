@@ -7,7 +7,6 @@ util.AddNetworkString( "SendURL" )
 util.AddNetworkString( "BroadcastURL" )
 
 function ENT:SpawnFunction( ply, tr ) 
-	
 	if ( !tr.Hit ) then return end
 	local SpawnPos = tr.HitPos + tr.HitNormal * 55
 	local ent = ents.Create( ClassName )
@@ -27,7 +26,6 @@ end
 
 
 function ENT:Use( activator, caller )
-	
 	print("Confirm "..activator:Nick())
 	net.Start("Radio-Use")
 		net.WriteEntity(self)
@@ -35,8 +33,8 @@ function ENT:Use( activator, caller )
 end
 
 net.Receive("SendURL", function( len, ply)
-	URL=net.ReadString()
-	ent=net.ReadEntity()
+	local URL=net.ReadString()
+	local ent=net.ReadEntity()
 	print("Received from client "..URL)
 		net.Start("BroadcastURL")
 			net.WriteString(URL)

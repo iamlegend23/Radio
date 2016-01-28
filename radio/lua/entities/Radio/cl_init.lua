@@ -1,5 +1,7 @@
 include('shared.lua')
 
+local SSV, RMV , ETV
+
 surface.CreateFont("Radio", {font="Tahoma", size=48, weight=700, shadow=true})
 
 function ENT:Draw()
@@ -25,19 +27,19 @@ if IsValid(self.stream) && self.stream:GetState()==GMOD_CHANNEL_PLAYING
 		self:FFT()
 	
 		--sfx shit		
-	if tbl[2] > 0.075 then
-		util.ScreenShake( self:GetPos(),tbl[2]*SSV, 10, 0.5, 1000 )
+	if self.tbl[2] > 0.075 then
+		util.ScreenShake( self:GetPos(),self.tbl[2]*SSV, 10, 0.5, 1000 )
 	end		
 	if RMV > 0 then
 		if halo.RenderedEntity()~=self then
-			DrawBloom( 0.2,tbl[2], 9, 9, 1, 1, tbl[2]*RMV, tbl[5]*RMV, tbl[10]*RMV ) -- Fuck shit up setting :D
+			DrawBloom( 0.2,self.tbl[2], 9, 9, 1, 1, self.tbl[2]*RMV, self.tbl[5]*RMV, self.tbl[10]*RMV ) -- Fuck shit up setting :D
 		end
 	end
 		--Visualizer
-		cam.Start3D2D( self:GetPos() + Vector(-10,13,2), dir, 0.07 )  
+		cam.Start3D2D( self:LocalToWorld(Vector(-10,13,2)), self:LocalToWorldAngles(Angle(0,90,90)), 0.07 )
 			for I=1, 180 do 	
-				surface.SetDrawColor(tbl[I]*1500,255,0,255)
-				surface.DrawOutlinedRect(I*2,0,3,Lerp(0.001,-tbl[I]*500,-tbl[I+1]*500)) 
+				surface.SetDrawColor(self.tbl[I]*1500,255,0,255)
+				surface.DrawOutlinedRect(I*2,0,3,-self.tbl[I]*800) 
 			end 
 		cam.End3D2D() 
 	end 
@@ -132,22 +134,12 @@ function ENT:Input()
 	RMT:SetPos( 20, 200 )
 	RMT:SetText( "Rave Value:" )
 	
-	self.fft={}
-	
 end
 
 
---[[ function ENT:Initialize() 
-print(self)
-print(Emitter)
-print(Particle)
-	local Emitter = ParticleEmitter( self:GetPos(), true )
-	local Particle = Emitter:Add("effects/redflare", Emitter:GetPos())
-	Particle:SetStartSize( 15 )
-	Particle:GetDieTime(300)
-	Particle:SetVelocity(Vector(math.random(1,30),math.random(1,30),math.random(1,30)))
-
-end ]]
+function ENT:Initialize() 
+	self.tbl={}
+end 
 
 net.Receive("Radio-Use", function()
 	local e=net.ReadEntity()
@@ -157,8 +149,8 @@ net.Receive("Radio-Use", function()
 end)
 
 net.Receive("BroadcastURL", function()
-	BroadcastedURL=net.ReadString()
-	BroadcastedEnt=net.ReadEntity()
+	local BroadcastedURL=net.ReadString()
+	local BroadcastedEnt=net.ReadEntity()
 	print("Received from server "..BroadcastedURL)
 	print(ETV)
 	if ETV then
@@ -172,11 +164,10 @@ end)
 	
 function ENT:FFT()
 
-	tbl={}
 		if self.stream:GetState()==GMOD_CHANNEL_PLAYING
 		then
-			self.stream:FFT(tbl,FFT_512)--Get FFT Data, 512 = 256 Samples 
-			PrintTable(tbl)
+			self.stream:FFT(self.tbl,FFT_512)--Get FFT Data, 512 = 256 Samples 
+			PrintTable(self.tbl)
 		end
 end
 
