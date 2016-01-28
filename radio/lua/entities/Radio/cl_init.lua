@@ -36,7 +36,7 @@ if IsValid(self.stream) && self.stream:GetState()==GMOD_CHANNEL_PLAYING
 		end
 	end
 		--Visualizer
-		cam.Start3D2D( self:LocalToWorld(Vector(-10,13,2)), self:LocalToWorldAngles(Angle(0,90,90)), 0.07 )
+		cam.Start3D2D( self:LocalToWorld(Vector(10,-13,2)), self:LocalToWorldAngles(Angle(0,90,90)), 0.07 )
 			for I=1, 180 do 	
 				surface.SetDrawColor(self.tbl[I]*1500,255,0,255)
 				surface.DrawOutlinedRect(I*2,0,3,-self.tbl[I]*800) 
