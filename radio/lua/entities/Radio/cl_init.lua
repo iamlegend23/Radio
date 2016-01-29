@@ -19,30 +19,43 @@ function ENT:Draw()
 		draw.DrawText("Radio", "Radio", 0, 0, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER )
 	cam.End3D2D()
 	
-	
-	
-if IsValid(self.stream) && self.stream:GetState()==GMOD_CHANNEL_PLAYING
-		then 
-		
-		self:FFT()
-	
-		--sfx shit		
-	if self.tbl[2] > 0.075 then
-		util.ScreenShake( self:GetPos(),self.tbl[2]*SSV, 10, 0.5, 1000 )
-	end		
-	if RMV > 0 then
-		if halo.RenderedEntity()~=self then
-			DrawBloom( 0.2,self.tbl[2], 9, 9, 1, 1, self.tbl[2]*RMV, self.tbl[5]*RMV, self.tbl[10]*RMV ) -- Fuck shit up setting :D
-		end
-	end
-		--Visualizer
+			--Visualizer
+	if IsValid(self.stream) && self.stream:GetState()==GMOD_CHANNEL_PLAYING then 
 		cam.Start3D2D( self:LocalToWorld(Vector(10,-13,2)), self:LocalToWorldAngles(Angle(0,90,90)), 0.07 )
 			for I=1, 180 do 	
 				surface.SetDrawColor(self.tbl[I]*1500,255,0,255)
 				surface.DrawOutlinedRect(I*2,0,3,-self.tbl[I]*800) 
 			end 
-		cam.End3D2D() 
+		cam.End3D2D()
+		if RMV > 0 then
+			if halo.RenderedEntity()~=self then
+				DrawBloom( 0.2,self.tbl[2], 9, 9, 1, 1, self.tbl[2]*RMV, self.tbl[5]*RMV, self.tbl[10]*RMV ) -- Need to get this to work inside an alternate function
+			end
+		end
+	end	
+	
+end
+
+function ENT:Think()
+
+	if IsValid(self.stream) && self.stream:GetState()==GMOD_CHANNEL_PLAYING then 
+			self:FFT()
+			--SFX Stuff--
+		if SSV > 0 then
+			if self.tbl[2] > 0.075 then
+				util.ScreenShake( self:GetPos(),self.tbl[2]*SSV, 10, 0.5, 50 )
+			end
+		end
 	end 
+	
+	if !ETV && IsValid(self.stream) then 
+		self.stream:Stop()
+	end
+	
+	SSV = math.Clamp(GetConVar("ScreenShakeValue"):GetFloat(),0,5)
+	RMV = math.Clamp(GetConVar("RaveModeValue"):GetFloat(),0,20)
+	ETV = GetConVar("RadioToggle"):GetBool()
+	
 end
 
 function ENT:Input()
@@ -52,7 +65,6 @@ function ENT:Input()
 	Frame:SetSize( 300, 300 )
 	Frame:Center()
 	Frame:MakePopup()
-	Frame:SetBackgroundBlur( true )
 	Frame.Paint = function( self, w, h )
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 100, 100, 100, 200 ) ) 
 	
@@ -61,7 +73,7 @@ function ENT:Input()
 	local URLEntry = vgui.Create( "DTextEntry", Frame )
 	URLEntry:SetPos( 25, 50 )
 	URLEntry:SetSize( 250, 35 )
-	URLEntry:SetTextPlaceholder( "URL" )
+	URLEntry:SetText( "URL" )
 	
 	local URLButton = vgui.Create( "DButton", Frame ) -- URL Button
 	URLButton:SetText( "Play/Stop" )
@@ -80,27 +92,11 @@ function ENT:Input()
 	UpdateButton.Paint = function( self, w, h )
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 41, 128, 185, 250 ) ) 
 	end
-	
-	URLButton.DoClick = function()
-		local EnteredURL = URLEntry:GetValue()
-		net.Start("SendURL")
-				net.WriteString(EnteredURL)
-				net.WriteEntity(self)
-			net.SendToServer()
-		Frame:Close()	
-	end
-	
-	UpdateButton.DoClick = function()
-		SSV = GetConVar("ScreenShakeValue"):GetFloat()
-		RMV = GetConVar("RaveModeValue"):GetFloat()
-		ETV = GetConVar("RadioToggle"):GetBool() -- Need a way of doing this in real time
-	end
-	
+
 	local EnableTog = vgui.Create( "DCheckBox",Frame )
 	EnableTog:SetPos( 120, 150 )
 	EnableTog:SetValue( 0 )
 	EnableTog:SetConVar( "RadioToggle" )
-
 	
 	local ScreenShakeMag = vgui.Create( "Slider", Frame )
 	ScreenShakeMag:SetPos( 120, 175 )
@@ -131,8 +127,21 @@ function ENT:Input()
 	RMT:SetPos( 20, 200 )
 	RMT:SetText( "Rave Value:" )
 	
+	URLButton.DoClick = function()
+		local EnteredURL = URLEntry:GetValue()
+		net.Start("SendURL")
+				net.WriteString(EnteredURL)
+				net.WriteEntity(self)
+			net.SendToServer()
+		Frame:Close()	
+	end
+	
+	UpdateButton.DoClick = function()
+		SSV = GetConVar("ScreenShakeValue"):GetFloat()
+		RMV = GetConVar("RaveModeValue"):GetFloat()
+		ETV = GetConVar("RadioToggle"):GetBool()
+	end
 end
-
 
 function ENT:Initialize() 
 	self.tbl={}
@@ -146,24 +155,28 @@ net.Receive("Radio-Use", function()
 end)
 
 net.Receive("BroadcastURL", function()
-		if IsValid(self.stream) then 
-			self.stream:Stop()
-		end
 	local BroadcastedURL=net.ReadString()
 	local BroadcastedEnt=net.ReadEntity()
+	if IsValid(BroadcastedEnt.stream) then 
+		BroadcastedEnt.stream:Stop()
+	end
 	if ETV then
 		sound.PlayURL( BroadcastedURL, "mono", function(stream)
 			BroadcastedEnt.stream=stream
 		end)
 	end
 end)	
-	
-function ENT:FFT()
 
-		if self.stream:GetState()==GMOD_CHANNEL_PLAYING
-		then
-			self.stream:FFT(self.tbl,FFT_512)--Get FFT Data, 512 = 256 Samples 
-		end
+function ENT:OnRemove()
+	if IsValid(self.stream) then 
+		self.stream:Stop()
+	end
+end	
+
+function ENT:FFT()
+	if self.stream:GetState()==GMOD_CHANNEL_PLAYING then
+		self.stream:FFT(self.tbl,FFT_512)--Get FFT Data, 512 = 256 Samples 
+	end
 end
 
 CreateClientConVar( "RadioToggle", "0", true, false )
