@@ -2,6 +2,13 @@ include('shared.lua')
 
 local SSV, RMV, ETV, RV, BV, GV
 
+SSV = GetConVar("ScreenShakeValue"):GetFloat()
+RMV = GetConVar("RaveModeValue"):GetFloat()
+ETV = GetConVar("RadioToggle"):GetBool()
+RV = GetConVar("RedValue"):GetFloat()
+GV = GetConVar("GreenValue"):GetFloat()
+BV = GetConVar("BlueValue"):GetFloat()
+		
 surface.CreateFont("Radio", {font="Tahoma", size=48, weight=700, shadow=true})
 
 function ENT:Draw()
@@ -57,12 +64,13 @@ function ENT:Think()
 end
 
 hook.Add("RenderScreenspaceEffects","Bloom",function()
-	
 	if RMV > 0 then
-	for k,v in pairs(ents.FindByClass("radio")) do
+		for k,v in pairs(ents.FindByClass("radio")) do
+			if IsValid(v.stream) then
 				DrawBloom( 0.2,v.tbl[2], 9, 9, 1, 1, v.tbl[RV]*RMV, v.tbl[GV]*RMV, v.tbl[BV]*RMV )
 			end
-		end	
+		end
+	end	
 end) 
 
 
