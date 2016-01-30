@@ -27,11 +27,6 @@ function ENT:Draw()
 				surface.DrawOutlinedRect(I*2,0,3,-self.tbl[I]*800) 
 			end 
 		cam.End3D2D()
-		if RMV > 0 then
-			if halo.RenderedEntity()~=self then
-				DrawBloom( 0.2,self.tbl[2], 9, 9, 1, 1, self.tbl[RV]*RMV, self.tbl[GV]*RMV, self.tbl[BV]*RMV ) -- Need to get this to work inside an alternate function
-			end
-		end
 	end	
 	
 end
@@ -60,6 +55,16 @@ function ENT:Think()
 	ETV = GetConVar("RadioToggle"):GetBool()
 	
 end
+
+hook.Add("RenderScreenspaceEffects","Bloom",function()
+	
+	if RMV > 0 then
+	for k,v in pairs(ents.FindByClass("radio")) do
+				DrawBloom( 0.2,v.tbl[2], 9, 9, 1, 1, v.tbl[RV]*RMV, v.tbl[GV]*RMV, v.tbl[BV]*RMV )
+			end
+		end	
+end) 
+
 
 function ENT:Input()
 	
