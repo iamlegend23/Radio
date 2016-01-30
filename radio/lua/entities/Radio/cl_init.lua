@@ -1,6 +1,6 @@
 include('shared.lua')
 
-local SSV, RMV , ETV
+local SSV, RMV, ETV, RV, BV, GV
 
 surface.CreateFont("Radio", {font="Tahoma", size=48, weight=700, shadow=true})
 
@@ -29,7 +29,7 @@ function ENT:Draw()
 		cam.End3D2D()
 		if RMV > 0 then
 			if halo.RenderedEntity()~=self then
-				DrawBloom( 0.2,self.tbl[2], 9, 9, 1, 1, self.tbl[2]*RMV, self.tbl[5]*RMV, self.tbl[10]*RMV ) -- Need to get this to work inside an alternate function
+				DrawBloom( 0.2,self.tbl[2], 9, 9, 1, 1, self.tbl[RV]*RMV, self.tbl[GV]*RMV, self.tbl[BV]*RMV ) -- Need to get this to work inside an alternate function
 			end
 		end
 	end	
@@ -53,7 +53,10 @@ function ENT:Think()
 	end
 	
 	SSV = math.Clamp(GetConVar("ScreenShakeValue"):GetFloat(),0,5)
-	RMV = math.Clamp(GetConVar("RaveModeValue"):GetFloat(),0,20)
+	RMV = math.Clamp(GetConVar("RaveModeValue"):GetFloat(),0,15)
+	RV = math.Clamp(GetConVar("RedValue"):GetInt(),2,10)
+	GV = math.Clamp(GetConVar("GreenValue"):GetInt(),2,10)
+	BV = math.Clamp(GetConVar("BlueValue"):GetInt(),2,10)
 	ETV = GetConVar("RadioToggle"):GetBool()
 	
 end
@@ -62,7 +65,7 @@ function ENT:Input()
 	
 	local Frame = vgui.Create( "DFrame" )
 	Frame:SetTitle( "Radio" )
-	Frame:SetSize( 300, 300 )
+	Frame:SetSize( 300, 400 )
 	Frame:Center()
 	Frame:MakePopup()
 	Frame.Paint = function( self, w, h )
@@ -87,7 +90,7 @@ function ENT:Input()
 	local UpdateButton = vgui.Create( "DButton", Frame ) -- Update Button
 	UpdateButton:SetText( "Update Settings" )
 	UpdateButton:SetTextColor( Color( 255, 255, 255 ) )
-	UpdateButton:SetPos( 100, 250 )
+	UpdateButton:SetPos( 100, 350 )
 	UpdateButton:SetSize( 100, 30 )
 	UpdateButton.Paint = function( self, w, h )
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 41, 128, 185, 250 ) ) 
@@ -109,8 +112,32 @@ function ENT:Input()
 	RaveModeMag:SetPos( 120, 200 )
 	RaveModeMag:SetSize( 150, 20 )
 	RaveModeMag:SetMin( 0 )				 
-	RaveModeMag:SetMax( 20 )	
+	RaveModeMag:SetMax( 15 )	
 	RaveModeMag:SetConVar( "RaveModeValue" )
+	
+	local RedFreq = vgui.Create( "Slider", Frame )
+	RedFreq:SetPos( 120, 250 )
+	RedFreq:SetSize( 150, 20 )
+	RedFreq:SetMin( 1 )				 
+	RedFreq:SetMax( 10 )	
+	RedFreq:SetDecimals( 0 )
+	RedFreq:SetConVar( "RedValue" )	
+	
+	local GreenFreq = vgui.Create( "Slider", Frame )
+	GreenFreq:SetPos( 120, 275 )
+	GreenFreq:SetSize( 150, 20 )
+	GreenFreq:SetMin( 1 )				 
+	GreenFreq:SetMax( 10 )	
+	GreenFreq:SetDecimals( 0 )
+	GreenFreq:SetConVar( "GreenValue" )
+	
+	local BlueFreq = vgui.Create( "Slider", Frame )
+	BlueFreq:SetPos( 120, 300 )
+	BlueFreq:SetSize( 150, 20 )
+	BlueFreq:SetMin( 1 )				 
+	BlueFreq:SetMax( 10 )	
+	BlueFreq:SetDecimals( 0 )	
+	BlueFreq:SetConVar( "BlueValue" )	
 	
 	local ETT = vgui.Create( "DLabel", Frame )
 	ETT:SetSize( 100, 20 )
@@ -125,7 +152,27 @@ function ENT:Input()
 	local RMT = vgui.Create( "DLabel", Frame )
 	RMT:SetSize( 100, 20 )
 	RMT:SetPos( 20, 200 )
-	RMT:SetText( "Rave Value:" )
+	RMT:SetText( "Rave Value:" )	
+	
+	local RT = vgui.Create( "DLabel", Frame )
+	RT:SetSize( 100, 20 )
+	RT:SetPos( 20, 250 )
+	RT:SetText( "Red Frequency:" )
+	
+	local GT = vgui.Create( "DLabel", Frame )
+	GT:SetSize( 100, 20 )
+	GT:SetPos( 20, 275 )
+	GT:SetText( "Green Frequency:" )	
+	
+	local BT = vgui.Create( "DLabel", Frame )
+	BT:SetSize( 100, 20 )
+	BT:SetPos( 20, 300 )
+	BT:SetText( "Blue Frequency:" )
+	
+	local CCT = vgui.Create( "DLabel", Frame )
+	CCT:SetSize( 300, 20 )
+	CCT:SetPos( 20, 230 )
+	CCT:SetText( "Frequency Colour:    <--Bass - Low Midrange-->" )
 	
 	URLButton.DoClick = function()
 		local EnteredURL = URLEntry:GetValue()
@@ -140,6 +187,9 @@ function ENT:Input()
 		SSV = GetConVar("ScreenShakeValue"):GetFloat()
 		RMV = GetConVar("RaveModeValue"):GetFloat()
 		ETV = GetConVar("RadioToggle"):GetBool()
+		RV = GetConVar("RedValue"):GetFloat()
+		GV = GetConVar("GreenValue"):GetFloat()
+		BV = GetConVar("BlueValue"):GetFloat()
 	end
 end
 
@@ -182,3 +232,6 @@ end
 CreateClientConVar( "RadioToggle", "0", true, false )
 CreateClientConVar( "ScreenShakeValue", "2", true, false )
 CreateClientConVar( "RaveModeValue", "5", true, false )
+CreateClientConVar( "RedValue", "2", true, false )
+CreateClientConVar( "GreenValue", "5", true, false )
+CreateClientConVar( "BlueValue", "10", true, false )
