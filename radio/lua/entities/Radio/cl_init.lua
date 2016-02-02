@@ -2,13 +2,7 @@ include('shared.lua')
 
 local SSV, RMV, ETV, RV, BV, GV
 
-SSV = GetConVar("ScreenShakeValue"):GetFloat()
-RMV = GetConVar("RaveModeValue"):GetFloat()
-ETV = GetConVar("RadioToggle"):GetBool()
-RV = GetConVar("RedValue"):GetFloat()
-GV = GetConVar("GreenValue"):GetFloat()
-BV = GetConVar("BlueValue"):GetFloat()
-		
+
 surface.CreateFont("Radio", {font="Tahoma", size=48, weight=700, shadow=true})
 
 function ENT:Draw()
@@ -61,6 +55,7 @@ function ENT:Think()
 	BV = math.Clamp(GetConVar("BlueValue"):GetInt(),2,10)
 	ETV = GetConVar("RadioToggle"):GetBool()
 	
+	
 end
 
 hook.Add("RenderScreenspaceEffects","Bloom",function()
@@ -83,7 +78,6 @@ function ENT:Input()
 	Frame:MakePopup()
 	Frame.Paint = function( self, w, h )
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 100, 100, 100, 200 ) ) 
-	
 	end
 
 	local URLEntry = vgui.Create( "DTextEntry", Frame )
@@ -248,3 +242,10 @@ CreateClientConVar( "RaveModeValue", "5", true, false )
 CreateClientConVar( "RedValue", "2", true, false )
 CreateClientConVar( "GreenValue", "5", true, false )
 CreateClientConVar( "BlueValue", "10", true, false )
+
+SSV = GetConVar("ScreenShakeValue"):GetFloat()
+RMV = GetConVar("RaveModeValue"):GetFloat()
+ETV = GetConVar("RadioToggle"):GetBool()
+RV = GetConVar("RedValue"):GetFloat()
+GV = GetConVar("GreenValue"):GetFloat()
+BV = GetConVar("BlueValue"):GetFloat()
